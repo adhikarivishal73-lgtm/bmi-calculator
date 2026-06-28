@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BMI Calculator India</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;800&family=Noto+Sans+Devanagari:wght@400;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0c29;
+    --card: rgba(255,255,255,0.06);
+    --border: rgba(255,255,255,0.12);
+    --purple: #a855f7;
+    --pink: #ec4899;
+    --cyan: #06b6d4;
+    --green: #22c55e;
+    --yellow: #eab308;
+    --orange: #f97316;
+    --red: #ef4444;
+    --text: #f1f5f9;
+    --muted: #94a3b8;
+  }
+
+  body {
+    font-family: 'Baloo 2', 'Noto Sans Devanagari', sans-serif;
+    background: linear-gradient(135deg, #0f0c29 0%, #1a0533 50%, #0c1445 100%);
+    min-height: 100vh;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 40%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 80% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 80%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 20% 70%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 30%, rgba(255,255,255,0.4) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 900px;
+  }
+
+  header { text-align: center; margin-bottom: 32px; }
+
+  .logo {
+    font-size: 3rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, var(--purple), var(--pink), var(--cyan));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.1;
+  }
+
+  .tagline { color: var(--muted); font-size: 1rem; margin-top: 6px; }
+
+  .main-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 32px;
+    backdrop-filter: blur(20px);
+  }
+
+  .section-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+
+  /* Gender */
+  .gender-section { margin-bottom: 28px; }
+
+  .gender-toggle { display: flex; gap: 12px; }
+
+  .gender-btn {
+    flex: 1; padding: 16px; border-radius: 16px;
+    border: 2px solid var(--border); background: transparent;
+    color: var(--muted); cursor: pointer; font-family: inherit;
+    font-size: 1rem; font-weight: 600; transition: all 0.3s ease;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+
+  .gender-btn .emoji { font-size: 1.5rem; }
+
+  .gender-btn.active-male {
+    border-color: var(--cyan);
+    background: rgba(6, 182, 212, 0.15);
+    color: var(--cyan);
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+  }
+
+  .gender-btn.active-female {
+    border-color: var(--pink);
+    background: rgba(236, 72, 153, 0.15);
+    color: var(--pink);
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.3);
+  }
+
+  /* Slider Cards */
+  .inputs-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 24px;
+  }
+
+  .input-box {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  .input-box .section-label { margin-bottom: 4px; }
+
+  .value-display {
+    font-size: 2.5rem;
+    font-weight: 800;
+    line-height: 1;
+    margin-bottom: 20px;
+    transition: color 0.3s;
+  }
+
+  .value-display span {
+    font-size: 1rem;
+    font-weight: 400;
+    color: var(--muted);
+    margin-left: 4px;
+  }
+
+  /* Custom Slider Wrapper */
+  .slider-wrapper {
+    position: relative;
+    width: 100%;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  /* Track background */
+  .slider-track-bg {
+    position: absolute;
+    left: 0; right: 0;
+    height: 8px;
+    border-radius: 4px;
+    background: rgba(255,255,255,0.1);
+    pointer-events: none;
+  }
+
+  /* Colored fill */
+  .slider-fill {
+    position: absolute;
+    left: 0;
+    height: 8px;
+    border-radius: 4px;
+    pointer-events: none;
+    transition: width 0.05s, background 0.3s;
+  }
+
+  /* Actual range input — sits on top, transparent */
+  input[type=range] {
+    -webkit-appearance: none;
+    appearance: none;
+    position: absolute;
+    left: 0; right: 0;
+    width: 100%;
+    height: 8px;
+    background: transparent;
+    outline: none;
+    cursor: pointer;
+    margin: 0;
+    z-index: 2;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 3px solid white;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+    position: relative;
+    z-index: 3;
+  }
+
+  input[type=range]::-webkit-slider-thumb:hover,
+  input[type=range]:active::-webkit-slider-thumb {
+    transform: scale(1.25);
+  }
+
+  input[type=range]::-moz-range-thumb {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 3px solid white;
+    cursor: pointer;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+  }
+
+  /* Individual thumb colors */
+  #heightSlider::-webkit-slider-thumb { background: var(--cyan); box-shadow: 0 0 10px rgba(6,182,212,0.6); }
+  #weightSlider::-webkit-slider-thumb { background: var(--purple); box-shadow: 0 0 10px rgba(168,85,247,0.6); }
+  #ageSlider::-webkit-slider-thumb { background: var(--pink); box-shadow: 0 0 10px rgba(236,72,153,0.6); }
+
+  #heightSlider::-moz-range-thumb { background: var(--cyan); }
+  #weightSlider::-moz-range-thumb { background: var(--purple); }
+  #ageSlider::-moz-range-thumb { background: var(--pink); }
+
+  .range-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  /* Tooltip bubble above thumb */
+  .slider-tooltip {
+    position: absolute;
+    top: -38px;
+    background: white;
+    color: #0f0c29;
+    font-weight: 800;
+    font-size: 0.8rem;
+    padding: 3px 8px;
+    border-radius: 8px;
+    pointer-events: none;
+    white-space: nowrap;
+    transform: translateX(-50%);
+    transition: left 0.05s;
+    z-index: 10;
+  }
+
+  .slider-tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0; height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid white;
+  }
+
+  /* Age row */
+  .age-row {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 28px;
+  }
+
+  /* Live BMI preview bar */
+  .live-preview {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .live-bmi-num {
+    font-size: 2rem;
+    font-weight: 800;
+    min-width: 60px;
+    transition: color 0.3s;
+  }
+
+  .live-bar-wrap {
+    flex: 1;
+    height: 10px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+
+  .live-bar-fill {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 0.3s, background 0.3s;
+    width: 0%;
+  }
+
+  .live-cat {
+    font-size: 0.85rem;
+    font-weight: 700;
+    min-width: 80px;
+    text-align: right;
+    transition: color 0.3s;
+  }
+
+  /* Button */
+  .calc-btn {
+    width: 100%;
+    padding: 18px;
+    border-radius: 16px;
+    border: none;
+    font-family: inherit;
+    font-size: 1.1rem;
+    font-weight: 800;
+    cursor: pointer;
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    color: white;
+    letter-spacing: 1px;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .calc-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .calc-btn:hover::before { left: 100%; }
+  .calc-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(168,85,247,0.4); }
+  .calc-btn:active { transform: translateY(0); }
+
+  /* Result */
+  .result-section { display: none; animation: slideUp 0.5s ease; }
+  .result-section.show { display: block; }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-main {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    align-items: center;
+    margin-top: 20px;
+  }
+
+  .figure-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .human-svg {
+    width: 140px;
+    height: 220px;
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: drop-shadow(0 0 20px currentColor);
+  }
+
+  .figure-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+    transition: color 0.3s;
+  }
+
+  .bmi-score-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px;
+    text-align: center;
+  }
+
+  .bmi-number {
+    font-size: 4rem;
+    font-weight: 800;
+    line-height: 1;
+    transition: color 0.3s;
+  }
+
+  .bmi-label-text {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 8px 0;
+    transition: color 0.3s;
+  }
+
+  .bmi-message { font-size: 0.85rem; color: var(--muted); line-height: 1.5; }
+
+  .bmi-scale {
+    margin-top: 16px;
+    border-radius: 16px;
+    padding: 16px 20px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+  }
+
+  .scale-bar {
+    height: 12px;
+    border-radius: 6px;
+    background: linear-gradient(90deg, #06b6d4 0%, #22c55e 25%, #eab308 50%, #f97316 75%, #ef4444 100%);
+    position: relative;
+    margin: 12px 0;
+  }
+
+  .scale-pointer {
+    position: absolute;
+    top: -6px;
+    width: 24px; height: 24px;
+    background: white;
+    border-radius: 50%;
+    border: 3px solid #0f0c29;
+    transform: translateX(-50%);
+    transition: left 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  }
+
+  .scale-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.65rem;
+    color: var(--muted);
+  }
+
+  .tips-card {
+    margin-top: 20px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+  }
+
+  .tips-title { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); margin-bottom: 12px; }
+
+  .tips-list { display: flex; flex-direction: column; gap: 8px; }
+
+  .tip-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+
+  .tip-icon { font-size: 1.1rem; flex-shrink: 0; }
+
+  /* Confetti */
+  .confetti-piece {
+    position: fixed;
+    width: 10px; height: 10px;
+    top: -10px;
+    border-radius: 2px;
+    animation: confettiFall linear forwards;
+    z-index: 999;
+    pointer-events: none;
+  }
+
+  @keyframes confettiFall {
+    to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  @media (max-width: 600px) {
+    .inputs-grid { grid-template-columns: 1fr; }
+    .result-main { grid-template-columns: 1fr; }
+    .logo { font-size: 2rem; }
+    .main-card { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div class="logo">⚡ BMI Calculator</div>
+    <div class="tagline">Apna BMI calculate karo aur jaano apni body ka raaz!</div>
+  </header>
+
+  <div class="main-card">
+
+    <!-- Gender -->
+    <div class="gender-section">
+      <div class="section-label">Gender Select Karo</div>
+      <div class="gender-toggle">
+        <button class="gender-btn active-male" id="maleBtn" onclick="setGender('male')">
+          <span class="emoji">👨</span> Male
+        </button>
+        <button class="gender-btn" id="femaleBtn" onclick="setGender('female')">
+          <span class="emoji">👩</span> Female
+        </button>
+      </div>
+    </div>
+
+    <!-- Height & Weight -->
+    <div class="inputs-grid">
+
+      <!-- Height -->
+      <div class="input-box">
+        <div class="section-label">Height</div>
+        <div class="value-display" id="heightVal" style="color:var(--cyan)">170<span>cm</span></div>
+        <div style="position:relative; margin-top:28px;">
+          <div class="slider-wrapper">
+            <div class="slider-track-bg"></div>
+            <div class="slider-fill" id="heightFill" style="background:var(--cyan);"></div>
+            <div class="slider-tooltip" id="heightTip">170 cm</div>
+            <input type="range" id="heightSlider" min="120" max="220" value="170"
+              oninput="updateSlider('height', this.value)">
+          </div>
+          <div class="range-labels"><span>120 cm</span><span>220 cm</span></div>
+        </div>
+      </div>
+
+      <!-- Weight -->
+      <div class="input-box">
+        <div class="section-label">Weight</div>
+        <div class="value-display" id="weightVal" style="color:var(--purple)">70<span>kg</span></div>
+        <div style="position:relative; margin-top:28px;">
+          <div class="slider-wrapper">
+            <div class="slider-track-bg"></div>
+            <div class="slider-fill" id="weightFill" style="background:var(--purple);"></div>
+            <div class="slider-tooltip" id="weightTip">70 kg</div>
+            <input type="range" id="weightSlider" min="30" max="180" value="70"
+              oninput="updateSlider('weight', this.value)">
+          </div>
+          <div class="range-labels"><span>30 kg</span><span>180 kg</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Age -->
+    <div class="age-row">
+      <div class="section-label">Age</div>
+      <div class="value-display" id="ageVal" style="color:var(--pink)">25<span>years</span></div>
+      <div style="position:relative; margin-top:28px;">
+        <div class="slider-wrapper">
+          <div class="slider-track-bg"></div>
+          <div class="slider-fill" id="ageFill" style="background:var(--pink);"></div>
+          <div class="slider-tooltip" id="ageTip">25 yrs</div>
+          <input type="range" id="ageSlider" min="5" max="100" value="25"
+            oninput="updateSlider('age', this.value)">
+        </div>
+        <div class="range-labels"><span>5 years</span><span>100 years</span></div>
+      </div>
+    </div>
+
+    <!-- Live BMI Preview -->
+    <div class="live-preview">
+      <div class="live-bmi-num" id="liveBmiNum">--</div>
+      <div class="live-bar-wrap">
+        <div class="live-bar-fill" id="liveBarFill"></div>
+      </div>
+      <div class="live-cat" id="liveCat">Move sliders!</div>
+    </div>
+
+    <!-- Button -->
+    <button class="calc-btn" onclick="calculate()">
+      🚀 BMI Calculate Karo!
+    </button>
+
+    <!-- Result -->
+    <div class="result-section" id="resultSection">
+      <div class="result-main">
+        <div class="figure-container">
+          <svg class="human-svg" id="humanFig" viewBox="0 0 100 160" xmlns="http://www.w3.org/2000/svg">
+            <ellipse id="head" cx="50" cy="22" rx="16" ry="18" fill="currentColor" opacity="0.9"/>
+            <rect id="neck" x="44" y="38" width="12" height="8" rx="4" fill="currentColor" opacity="0.85"/>
+            <ellipse id="body" cx="50" cy="80" rx="22" ry="30" fill="currentColor" opacity="0.85"/>
+            <ellipse id="larm" cx="22" cy="78" rx="8" ry="22" fill="currentColor" opacity="0.75" transform="rotate(-10 22 78)"/>
+            <ellipse id="rarm" cx="78" cy="78" rx="8" ry="22" fill="currentColor" opacity="0.75" transform="rotate(10 78 78)"/>
+            <ellipse id="lleg" cx="38" cy="130" rx="9" ry="24" fill="currentColor" opacity="0.8"/>
+            <ellipse id="rleg" cx="62" cy="130" rx="9" ry="24" fill="currentColor" opacity="0.8"/>
+            <circle cx="44" cy="20" r="2.5" fill="rgba(0,0,0,0.4)"/>
+            <circle cx="56" cy="20" r="2.5" fill="rgba(0,0,0,0.4)"/>
+            <path id="mouth" d="M 44 28 Q 50 33 56 28" stroke="rgba(0,0,0,0.4)" stroke-width="2" fill="none" stroke-linecap="round"/>
+          </svg>
+          <div class="figure-label" id="figureLabel">Apni details dalo!</div>
+        </div>
+
+        <div>
+          <div class="bmi-score-card">
+            <div class="bmi-number" id="bmiNumber">--</div>
+            <div class="bmi-label-text" id="bmiLabel">BMI</div>
+            <div class="bmi-message" id="bmiMessage">Slider ghuma kar calculate karo!</div>
+          </div>
+          <div class="bmi-scale">
+            <div class="section-label">BMI Scale</div>
+            <div class="scale-bar">
+              <div class="scale-pointer" id="scalePointer" style="left:0%"></div>
+            </div>
+            <div class="scale-labels">
+              <span>Underweight<br>&lt;18.5</span>
+              <span>Normal<br>18.5–24.9</span>
+              <span>Overweight<br>25–29.9</span>
+              <span>Obese<br>&gt;30</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tips-card" id="tipsCard">
+        <div class="tips-title">💡 Aapke liye Tips</div>
+        <div class="tips-list" id="tipsList"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  let gender = 'male';
+
+  // Init fills on load
+  window.addEventListener('load', () => {
+    updateSlider('height', 170);
+    updateSlider('weight', 70);
+    updateSlider('age', 25);
+  });
+
+  function setGender(g) {
+    gender = g;
+    document.getElementById('maleBtn').className = 'gender-btn' + (g==='male' ? ' active-male' : '');
+    document.getElementById('femaleBtn').className = 'gender-btn' + (g==='female' ? ' active-female' : '');
+    updateLiveBMI();
+  }
+
+  function updateSlider(type, val) {
+    val = parseInt(val);
+    let min, max, fillEl, tipEl, valEl, unit, color;
+
+    if (type === 'height') {
+      min=120; max=220; color='#06b6d4'; unit='cm';
+      fillEl = document.getElementById('heightFill');
+      tipEl  = document.getElementById('heightTip');
+      valEl  = document.getElementById('heightVal');
+      tipEl.textContent = val + ' cm';
+    } else if (type === 'weight') {
+      min=30; max=180; color='#a855f7'; unit='kg';
+      fillEl = document.getElementById('weightFill');
+      tipEl  = document.getElementById('weightTip');
+      valEl  = document.getElementById('weightVal');
+      tipEl.textContent = val + ' kg';
+    } else {
+      min=5; max=100; color='#ec4899'; unit='yrs';
+      fillEl = document.getElementById('ageFill');
+      tipEl  = document.getElementById('ageTip');
+      valEl  = document.getElementById('ageVal');
+      tipEl.textContent = val + ' yrs';
+    }
+
+    const pct = (val - min) / (max - min) * 100;
+
+    // Fill width
+    fillEl.style.width = pct + '%';
+    fillEl.style.background = color;
+
+    // Tooltip position
+    // Thumb travels from ~14px to ~(width-14px). Approximate:
+    tipEl.style.left = 'calc(' + pct + '% + ' + (14 - pct * 0.28) + 'px)';
+
+    // Value display
+    const unitText = type === 'age' ? 'years' : unit;
+    valEl.innerHTML = val + '<span>' + unitText + '</span>';
+
+    updateLiveBMI();
+  }
+
+  function updateLiveBMI() {
+    const h = parseInt(document.getElementById('heightSlider').value) / 100;
+    const w = parseInt(document.getElementById('weightSlider').value);
+    const bmi = w / (h * h);
+    const bmiR = bmi.toFixed(1);
+
+    let color, cat;
+    if (bmi < 16)       { color='#06b6d4'; cat='Severely Under'; }
+    else if (bmi < 18.5){ color='#22d3ee'; cat='Underweight'; }
+    else if (bmi < 25)  { color='#22c55e'; cat='Normal ✅'; }
+    else if (bmi < 30)  { color='#eab308'; cat='Overweight'; }
+    else if (bmi < 35)  { color='#f97316'; cat='Obese I'; }
+    else if (bmi < 40)  { color='#ef4444'; cat='Obese II'; }
+    else                { color='#dc2626'; cat='Critical 🚨'; }
+
+    document.getElementById('liveBmiNum').textContent = bmiR;
+    document.getElementById('liveBmiNum').style.color = color;
+    document.getElementById('liveCat').textContent = cat;
+    document.getElementById('liveCat').style.color = color;
+
+    const barPct = Math.min(Math.max((bmi - 14) / (40 - 14) * 100, 0), 100);
+    document.getElementById('liveBarFill').style.width = barPct + '%';
+    document.getElementById('liveBarFill').style.background = color;
+  }
+
+  function calculate() {
+    const h = parseInt(document.getElementById('heightSlider').value) / 100;
+    const w = parseInt(document.getElementById('weightSlider').value);
+    const bmi = w / (h * h);
+    const bmiRound = bmi.toFixed(1);
+
+    let color, label, message, bodyScale, tips, mouthPath, emoji, figLabel;
+
+    if (bmi < 16) {
+      color='#06b6d4'; label='Severely Underweight'; emoji='😟';
+      message='Aapka weight bahut kam hai. Turant doctor se milna chahiye!';
+      bodyScale=0.55; mouthPath='M 44 30 Q 50 26 56 30';
+      tips=['🍚 Din mein 5-6 baar khao','🥛 Doodh, paneer, eggs khao','🏋️ Light exercise se shuru karo','👨‍⚕️ Doctor se zarur milo'];
+      figLabel='Bahut Patla 😟';
+    } else if (bmi < 18.5) {
+      color='#22d3ee'; label='Underweight'; emoji='🙁';
+      message='Thoda kam weight hai. Poshtik khana khao aur exercise karo!';
+      bodyScale=0.7; mouthPath='M 44 29 Q 50 27 56 29';
+      tips=['🍗 Protein rich khana khao','🌰 Dry fruits aur nuts khao','💪 Gym start karo','😴 8 ghante ki neend lo'];
+      figLabel='Patla 🙁';
+    } else if (bmi < 25) {
+      color='#22c55e'; label='Normal Weight'; emoji='😁';
+      message='Wah! Bilkul perfect weight hai aapka! Keep it up! 🎉';
+      bodyScale=1.0; mouthPath='M 44 28 Q 50 33 56 28';
+      tips=['✅ Aap bilkul fit ho!','🏃 Regular exercise jari rakho','🥗 Balanced diet continue karo','💧 Khub paani piyo'];
+      figLabel='Perfect Fit! 😁';
+      launchConfetti();
+    } else if (bmi < 30) {
+      color='#eab308'; label='Overweight'; emoji='😅';
+      message='Thoda zyada weight hai. Diet aur exercise se theek ho jayega!';
+      bodyScale=1.3; mouthPath='M 44 29 Q 50 27 56 29';
+      tips=['🚶 Roz 30 min walk karo','🚫 Junk food se bcho','🥤 Sugar free drinks lo','⏰ Time pe khao'];
+      figLabel='Thoda Zyada 😅';
+    } else if (bmi < 35) {
+      color='#f97316'; label='Obese Class I'; emoji='😬';
+      message='Weight zyada hai. Doctor aur dietitian se milna zaroori hai!';
+      bodyScale=1.55; mouthPath='M 44 30 Q 50 26 56 30';
+      tips=['👨‍⚕️ Doctor se zaroor milo','🥣 Calorie count karo','🏊 Swimming ya yoga karo','❌ Late night khana band karo'];
+      figLabel='Motapa Class I 😬';
+    } else if (bmi < 40) {
+      color='#ef4444'; label='Obese Class II'; emoji='😰';
+      message='Zyada motapa health ke liye dangerous hai. Medical help lo!';
+      bodyScale=1.8; mouthPath='M 44 30 Q 50 25 56 30';
+      tips=['🚨 Turant doctor se milo','📉 Weight loss program join karo','🍎 Fruit aur vegetables zyada lo','📵 Screen time kam karo'];
+      figLabel='Motapa Class II 😰';
+    } else {
+      color='#dc2626'; label='Morbidly Obese'; emoji='🚨';
+      message='Emergency! Yeh weight life-threatening ho sakta hai. Abhi doctor se milo!';
+      bodyScale=2.1; mouthPath='M 44 31 Q 50 25 56 31';
+      tips=['🚨 TURANT doctor se milo!','🏥 Medical supervision lena zaroori hai','💊 Conditions check karwao','📞 Family ko batao'];
+      figLabel='Critical ⚠️';
+    }
+
+    const fig = document.getElementById('humanFig');
+    fig.style.color = color;
+
+    const body = document.getElementById('body');
+    const larm = document.getElementById('larm');
+    const rarm = document.getElementById('rarm');
+    const lleg = document.getElementById('lleg');
+    const rleg = document.getElementById('rleg');
+    const head = document.getElementById('head');
+    const s = bodyScale;
+
+    body.setAttribute('rx', 22 * Math.min(s, 2.0));
+    body.setAttribute('ry', 30 * Math.min(s, 1.5));
+    larm.setAttribute('rx', 8 * Math.min(s, 1.8));
+    rarm.setAttribute('rx', 8 * Math.min(s, 1.8));
+    lleg.setAttribute('rx', 9 * Math.min(s, 1.7));
+    rleg.setAttribute('rx', 9 * Math.min(s, 1.7));
+    head.setAttribute('rx', Math.min(16 * Math.max(s * 0.7, 0.6), 20));
+    head.setAttribute('ry', Math.min(18 * Math.max(s * 0.7, 0.6), 22));
+
+    if (gender === 'female') {
+      body.setAttribute('cy', 82);
+      body.setAttribute('ry', 28 * Math.min(s, 1.5));
+    }
+
+    document.getElementById('mouth').setAttribute('d', mouthPath);
+    document.getElementById('bmiNumber').textContent = bmiRound;
+    document.getElementById('bmiNumber').style.color = color;
+    document.getElementById('bmiLabel').textContent = emoji + ' ' + label;
+    document.getElementById('bmiLabel').style.color = color;
+    document.getElementById('bmiMessage').textContent = message;
+    document.getElementById('figureLabel').textContent = figLabel;
+    document.getElementById('figureLabel').style.color = color;
+
+    const pct = Math.min(Math.max((bmi - 14) / (40 - 14) * 100, 0), 100);
+    document.getElementById('scalePointer').style.left = pct + '%';
+
+    const tipsHtml = tips.map(t => `
+      <div class="tip-item">
+        <span class="tip-icon">${t.slice(0,2)}</span>
+        <span>${t.slice(2)}</span>
+      </div>`).join('');
+    document.getElementById('tipsList').innerHTML = tipsHtml;
+
+    const res = document.getElementById('resultSection');
+    res.classList.remove('show');
+    setTimeout(() => res.classList.add('show'), 50);
+    setTimeout(() => res.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+  }
+
+  function launchConfetti() {
+    const colors = ['#a855f7','#ec4899','#06b6d4','#22c55e','#eab308','#f97316'];
+    for (let i = 0; i < 60; i++) {
+      setTimeout(() => {
+        const el = document.createElement('div');
+        el.className = 'confetti-piece';
+        el.style.left = Math.random() * 100 + 'vw';
+        el.style.background = colors[Math.floor(Math.random() * colors.length)];
+        el.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+        el.style.animationDelay = Math.random() * 0.5 + 's';
+        el.style.width = (6 + Math.random() * 8) + 'px';
+        el.style.height = (6 + Math.random() * 8) + 'px';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 3500);
+      }, i * 30);
+    }
+  }
+</script>
+</body>
+</html>
